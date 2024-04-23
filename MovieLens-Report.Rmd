@@ -1,0 +1,628 @@
+---
+title: "MovieLens Report Project"
+author: "Ernesto José Hernández Navarro"
+date: '2024-03-25'
+output:
+  word_document:
+    toc: yes
+  pdf_document:
+    toc: yes
+  html_document:
+    df_print: kable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+if(!require(tidyverse)) install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+if(!require(caret)) install.packages("caret", repos = "http://cran.us.r-project.org")
+if(!require(lubridate)) install.packages("lubridate", repos = "http://cran.us.r-project.org")
+if(!require(ggplot2)) install.packages("ggplot2", repos = "http://cran.us.r-project.org")
+if(!require(stringr)) install.packages("stringr", repos = "http://cran.us.r-project.org")
+if(!require(scales)) install.packages("scales", repos = "http://cran.us.r-project.org")
+
+library(lubridate)
+library(ggplot2)
+library(stringr)
+library(scales)
+
+#edx Code:
+
+##########################################################
+# Create edx and final_holdout_test sets 
+##########################################################
+
+# Note: this process could take a couple of minutes
+
+if(!require(tidyverse)) install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+if(!require(caret)) install.packages("caret", repos = "http://cran.us.r-project.org")
+
+library(tidyverse)
+library(caret)
+
+# MovieLens 10M dataset:
+# https://grouplens.org/datasets/movielens/10m/
+# http://files.grouplens.org/datasets/movielens/ml-10m.zip
+
+options(timeout = 120)
+
+dl <- "ml-10M100K.zip"
+if(!file.exists(dl))
+  download.file("https://files.grouplens.org/datasets/movielens/ml-10m.zip", dl)
+
+ratings_file <- "ml-10M100K/ratings.dat"
+if(!file.exists(ratings_file))
+  unzip(dl, ratings_file)
+
+movies_file <- "ml-10M100K/movies.dat"
+if(!file.exists(movies_file))
+  unzip(dl, movies_file)
+
+ratings <- as.data.frame(str_split(read_lines(ratings_file), fixed("::"), simplify = TRUE),
+                         stringsAsFactors = FALSE)
+colnames(ratings) <- c("userId", "movieId", "rating", "timestamp")
+ratings <- ratings %>%
+  mutate(userId = as.integer(userId),
+         movieId = as.integer(movieId),
+         rating = as.numeric(rating),
+         timestamp = as.integer(timestamp))
+
+movies <- as.data.frame(str_split(read_lines(movies_file), fixed("::"), simplify = TRUE),
+                        stringsAsFactors = FALSE)
+colnames(movies) <- c("movieId", "title", "genres")
+movies <- movies %>%
+  mutate(movieId = as.integer(movieId))
+
+movielens <- left_join(ratings, movies, by = "movieId")
+
+# Final hold-out test set will be 10% of MovieLens data
+set.seed(1, sample.kind="Rounding") # if using R 3.6 or later
+# set.seed(1) # if using R 3.5 or earlier
+test_index <- createDataPartition(y = movielens$rating, times = 1, p = 0.1, list = FALSE)
+edx <- movielens[-test_index,]
+temp <- movielens[test_index,]
+
+# Make sure userId and movieId in final hold-out test set are also in edx set
+final_holdout_test <- temp %>% 
+  semi_join(edx, by = "movieId") %>%
+  semi_join(edx, by = "userId")
+
+# Add rows removed from final hold-out test set back into edx set
+removed <- anti_join(temp, final_holdout_test)
+edx <- rbind(edx, removed)
+
+rm(dl, ratings, movies, test_index, temp, movielens, removed)
+
+
+```
+
+# Introduction
+
+Currently Machine Learning, one of the disciplines of artificial intelligence, has become one of the most important tools for public and private companies, in sectors such as health, economy, sports, traffic and movies, which is the case we are going to be analyzing this document.
+
+Netflix organized a contest for a team that could create a movie recommendation system in 2006. This algorithm developed by BellKor's Pragmtic Chaos team in 2009 served as a reference for companies like Amazon and offer their customers more precisely the products that they have the most propensity to buy.
+
+The goal of this project is to use the MovieLens dataset (which has 10 million ratings), R and RStudio, to achieve a root mean square error (RMSE) less than 0.86490. Due to the large amount of information the edX team has made available the code to split the data.
+
+To help understand the data set, a data exploration will be carried out. For the algorithm tests, the information will be divided into a training and test set in order to validate the work done on the final model, the limitations and possible future potential.
+
+# Data exploration
+
+The data from edX `r class(edx)` has `r format(nrow(edx),big.mark=",",scientific=F)` rows and `r format(ncol(edx),big.mark=",",scientific=F)` columns, with ratings given by a total of `r format(n_distinct(edx$userId), big.mark=",",scientific=F)` unique users, with a total of `r format(n_distinct(edx$movieId),big.mark=",",scientific=F)` unique movies. The data has structure and does not has nulls:
+
+```{r echo=FALSE}
+#Number of nulls
+sapply(edx, function(x) sum(is.na(x)))
+```
+
+On the top ten most rated films we see a clearly winner with Pulp fiction:
+
+```{r echo=FALSE}
+edx %>% 
+  group_by(title) %>%
+  summarize(Count_Rating = n()) %>%
+  top_n(10,Count_Rating) %>%
+  arrange(desc(Count_Rating))%>% knitr::kable()
+```
+
+The rating most used by users is 4 representing the `r percent(sum(edx$rating==4)/nrow(edx), accuracy = 0.01)` of the total ratings, the minimum is `r min(edx$rating)`, the maximum is `r max(edx$rating)`. The integer rates were `r format(sum(edx$rating==1 | edx$rating==2 | edx$rating==3 | edx$rating==4 | edx$rating==5),big.mark=",",scientific=F)` which represents the `r percent(sum(edx$rating==1 | edx$rating==2 | edx$rating==3 | edx$rating==4 | edx$rating==5)/nrow(edx), 0.1)` and the decimal ratings were `r format(sum(edx$rating==0.5 | edx$rating==1.5 | edx$rating==2.5 | edx$rating==3.5 | edx$rating==4.5),big.mark=",",scientific=F)` representing the `r percent(sum(edx$rating==0.5 | edx$rating==1.5 | edx$rating==2.5 | edx$rating==3.5 | edx$rating==4.5)/nrow(edx), 0.1)`.
+
+```{r - distribution-ratings, echo=FALSE, fig.cap="Ratings distribution"}
+ggplot(data = edx, aes(x = rating)) +
+  geom_histogram(binwidth = 0.2, fill = "cadetblue3", color = "white") +
+scale_y_continuous(breaks = c(1000000, 2000000), labels = c("1", "2")) +
+  labs(x = "User Rating", y = "Millions", caption = "Source: edx dataset")
+
+```
+
+## Movies
+
+As we know, not all the users rates the received service, and in this case, the watched movie is not always rated, some are more rated than others, and 126 movies where rated with once. So, there is a bias that has to be consider on the training algorithm.
+
+```{r - movie-effects, echo=FALSE, fig.cap="Distribution of rated movies in average"}
+edx %>% group_by(movieId) %>%
+  summarise(ave_rating = sum(rating)/n()) %>%
+  ggplot(aes(ave_rating)) +
+  geom_histogram(bins=30, fill= "cadetblue3", color = "white") +
+  labs(x = "Avg. Rating", y = "# of movies", caption = "Source: edx dataset") 
+```
+
+## Users
+
+Some users contribute more than others, and some of then a more benevolent (high ratings) with the movies. One user made `r edx %>% count(userId) %>% arrange(desc(n)) %>% top_n(1) %>% pull(n)` and `r edx %>% count(userId<10) %>% count() %>% pull(n)` did `r edx %>% filter(userId<10) %>% count() %>% pull(n)` made less than 10 ratings. The bias is clearly with the following plot:
+
+```{r - user-effects-1,  echo=FALSE, fig.cap="Distribution of users by Avg. Rating"}
+edx %>% group_by(userId) %>%
+  summarise(ave_rating = sum(rating)/n()) %>%
+  ggplot(aes(ave_rating)) +
+  geom_histogram(bins=30, fill="cadetblue3" ,color = "white") +
+  labs(x = "Avg. Rating", y = "# of users", caption = "Source: edx dataset")
+```
+
+```{r - user-effects-2, fig.cap="# of ratings by user", echo=FALSE}
+# Plot number of ratings by user in the edx dataset
+edx %>% 
+  count(userId) %>% 
+  ggplot(aes(n)) + 
+  geom_histogram( bins=30, fill= "cadetblue3",color = "white") +
+  scale_x_log10() +
+  labs(x = "Users", y = "# of ratings", caption = "Source: edx dataset")
+```
+
+## Genre
+
+Movies not always has one genre, so, in the edx data set we can see that the field "genre" assigns several genres and separates it with the symbol "\|", and for our exploration the first one will be take. In the following table we can see that some genres have better ratings and a greater number of ratings:
+
+```{r - First genre by movie, echo=FALSE}
+#First genre by the total of genres
+edx %>% separate_longer_delim(genres, delim = "|") %>%
+  group_by(genres) %>%
+  summarise(count = n(), rating = round(mean(rating), 2)) %>%
+  arrange(desc(count))
+```
+
+Drama and Comedy genre have clearly the most quantity of rates, Documentary and IMAX are the lowest rated. Also there are seven that don't have a genre.
+
+## Title
+
+In the data set the column "Title" includes the release year of the movie as we can see in the following table:
+
+```{r - Top ten titles (movies), echo=FALSE}
+# Group and list top 10 movie titles based on # of ratings
+edx %>% group_by(title) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n)) %>%
+  top_n(10)
+```
+
+It looks like there is a bias on the year, on the following chart the curve increase between 1940 and 1950, after that and starting from 1970 the curve decrease the average rating. The number of rates starts it peak on 1990 and maximum number is on 1995.
+
+```{r - year effect, echo=FALSE}
+edx <- edx %>% mutate(title = str_trim(title)) %>%
+  extract(title, c("title_temp", "year"), regex = "^(.*) \\(([0-9 \\-]*)\\)$", remove = F) %>%
+  mutate(year = if_else(str_length(year) > 4, as.integer(str_split(year, "-", simplify = T)[1]), as.integer(year))) %>%
+  mutate(title = if_else(is.na(title_temp), title, title_temp)) %>%
+  select(-title_temp)
+edx %>% group_by(year) %>%
+  summarise(rating = mean(rating)) %>%
+  ggplot(aes(year, rating)) +
+  geom_point() +
+  geom_smooth() +
+  labs(x = "Release Year", y = "Avg Rating", caption = "Source: edx dataset")
+```
+
+Plot with year of release:
+
+```{r - number-of-rates-by-release-year, echo=FALSE}
+# Plot # of ratings by year of release in the edx dataset
+edx %>% group_by(year) %>%
+  summarise(count = n()) %>%
+  ggplot(aes(year, count)) +
+  geom_line() +
+  scale_y_continuous(breaks = seq(0, 800000, 200000), labels = seq(0, 800, 200)) +
+  labs(x = "Release Year", y = "# of Ratings", caption = "Source: edx dataset") 
+```
+
+## Methods
+
+```{r split-data, echo=FALSE}
+
+#Create training and test set from edx dataframe
+
+set.seed(2024, sample.kind = "Rounding")
+test_index<-createDataPartition(y=edx$rating, times = 1, p = 0.2, list = FALSE)
+train_set<-edx[-test_index,]
+temp <-edx[test_index,]
+
+# Make sure userId and movieId in test set are also in train set
+test_set <- temp %>%
+  semi_join(train_set, by = "movieId") %>%
+  semi_join(train_set, by = "userId")
+
+# Add rows removed from test set back into train set
+removed <- anti_join(temp, test_set) 
+train_set <- rbind(train_set, removed)
+
+# Remove temporary files to tidy environment
+rm(test_index, temp, removed) 
+```
+
+As mentioned at the introduction our goal is to reach a RMSE less than 0.86490, to do it the edx dataset needs to be split in two parts, the training set and the test set. This together with cross-validation methods allows to prevent over-training.
+
+```{r objective-rmse-table, echo=FALSE}
+objective_rmse <- 0.86490
+df_results <- data.frame(Method = "Objective", RMSE = as.character(objective_rmse), Difference = "-")
+
+```
+
+Doing the same steps learned from professor Irizarry courses the data will be partitioned, 80% for training and 20% for testing using the libraries "caret", "tydiverse" and "dplyr".
+
+### Error loss
+
+The RMSE is like the standard deviation of the residual predictors. The RMSE represent the error loss between the predicted ratings from applying the algorithm and actual ratings in the test set. The formula shown below, $y_{u,i}$ is defined as the actual rating provided by a user $u$ for a movie $i$, $\hat{y}_{u,i}$ is the predicted rating for the same, and N is the total number of user/movie combinations.
+
+$$RMSE = \sqrt{\frac{1}{N}\sum_{u,i}\left(\hat{y}_{u,i}-y_{u,i}\right)^2}$$
+
+### Developing the algorithm
+
+The goal set for this project is to achieve a RMSE equal or less than 0.86490, then it will be about reaching the goal step by step. We need to the fit the model with this formula:
+
+$$Y_{u,i}=\mu+\epsilon_{u,i}$$
+
+The common method is to use the rating mean of every user on movies.
+
+$$Y{u,i} = \mu$$
+
+```{r mean_rating, echo=TRUE}
+mu_hat <- mean(train_set$rating)
+RMSE(test_set$rating, mu_hat)
+```
+
+And any number will be higher than $\hat{\mu}$ mean as we can see below
+
+```{r any-number, echo=TRUE}
+predictions <- rep(2.5, nrow(test_set))
+RMSE(test_set$rating, predictions)
+```
+
+#### Movie effect
+
+Due to the large dataset for this project a linear regression would take several time, a better option to work with is the least square estimate of the movie effect $\hat{b}_i$, it can be take from the average of $Y_{u,i}-\hat{\mu}$ in every movie $i$. The following formula was used to get the movie effect:
+
+$$Y_{u,i}=\mu+b_i+\epsilon_{u,i}$$
+
+And we can see the effect of the movies with the following plot:
+
+```{r movie-effect, echo=FALSE, fig.cap="Distribution movie effect"}
+movie_avg<-train_set %>% 
+  group_by(movieId) %>%
+  summarise(b_i= mean(rating - mu_hat))
+
+movie_avg %>% qplot(b_i, geom ="histogram", bins = 30, data = ., color = I("white"),fill = I("cadetblue"))
+
+```
+
+The RMSE is lowest than the mean and it was a good improve, as it was shown in data exploration some movies get more rated than others, we still need improve more the result to get our objective.
+
+```{r movie-effect-rmse, echo=FALSE }
+# Predict ratings adjusting for movie effects
+predicted_ratings<-mu_hat+test_set%>%
+  left_join(movie_avg, by = "movieId") %>%
+  pull(b_i)
+
+# Calculate RMSE based on movie effects model
+model_1_rmse<-RMSE(test_set$rating, predicted_ratings)
+
+#Save result and show difference between objective
+df_results<-bind_rows(df_results,
+                      data.frame(Method = "Movie  Effect", RMSE = as.character(round(model_1_rmse,5)), 
+                                 Difference = as.character(round(model_1_rmse,5)-objective_rmse)))
+
+df_results %>% knitr::kable()
+```
+
+#### User effect
+
+Some users tend to rate more than others (quantity) and other are more critical than others, so adding the user effect is slightly better than only use the movie effect
+
+```{r user-effect, echo=FALSE, fig.cap="Distribution user effect"}
+
+train_set %>% 
+  group_by(userId) %>% 
+  summarize(b_u = mean(rating)) %>% 
+  filter(n()>=100) %>%
+  ggplot(aes(b_u)) + 
+  geom_histogram(bins = 30, fill="cadetblue3",color = "white")
+
+```
+
+```{r user-effect-result,echo=FALSE}
+
+user_avg <- train_set %>%
+  left_join(movie_avg, by="movieId") %>%
+  group_by(userId) %>%
+  summarize(b_u= mean(rating - mu_hat - b_i))
+
+#Predict rating using movie and user effect  
+predicted_ratings<-test_set %>%
+  left_join(movie_avg, by="movieId") %>%
+  left_join(user_avg, by = "userId") %>%
+  mutate(pred=mu_hat + b_u + b_i) %>%
+  pull(pred)
+
+#Get the RMSE result from movie and user effect
+model_2_rmse<-RMSE(predicted_ratings, test_set$rating)
+
+#Add the RMSE to result table
+df_results<-bind_rows(
+  df_results,
+  data.frame(Method = "Movie  + User Effect", RMSE= as.character(round(model_2_rmse,5))
+             ,Difference =as.character(round(model_2_rmse-objective_rmse,5)))
+)
+
+df_results %>% knitr::kable()
+```
+
+#### Gender effect
+
+The movies acclaimed by critics then to be more rated by users thats why we saw an improve using movies and users, but this happens with the genre too. The table below shows the results.
+
+```{r genre-effect, echo=FALSE}
+
+genre_avg <- train_set %>%
+  left_join(movie_avg, by = "movieId") %>%
+  left_join(user_avg, by = "userId") %>%
+  group_by(genres) %>%
+  summarize(b_g= mean(rating - mu_hat - b_i - b_u))
+
+predicted_ratings<-test_set %>%
+  left_join(movie_avg, by="movieId") %>%
+  left_join(user_avg, by = "userId") %>%
+  left_join(genre_avg, by = "genres") %>%
+  mutate(pred=mu_hat+b_u+b_i+b_g) %>%
+  pull(pred)
+
+model_3_rmse<-RMSE(predicted_ratings, test_set$rating)
+
+#Add the RMSE to result table
+df_results<-bind_rows(
+  df_results,
+  data.frame(Method = "Movie, User, Genre Effect", RMSE= as.character(round(model_3_rmse,5))
+             ,Difference =as.character(round(model_3_rmse-objective_rmse,5)))
+)
+
+df_results %>% knitr::kable()
+
+```
+
+#### Year effect
+
+On the data exploration it was shown than it was a clearly year effect reaching it highest peak on the 90's. It adds a modest improve of `r format(as.character(round(model_3_rmse-objective_rmse,5)), big.mark=",",scientific=F)`.
+
+```{r year-effect, echo=FALSE}
+year_avg <- train_set %>%
+  left_join(movie_avg, by = "movieId") %>%
+  left_join(user_avg, by = "userId") %>%
+  left_join(genre_avg, by = "genres")%>%
+  group_by(year) %>%
+  summarize(b_y= mean(rating - mu_hat - b_i - b_u - b_g))
+
+predicted_ratings<-test_set %>%
+  left_join(movie_avg, by="movieId") %>%
+  left_join(user_avg, by = "userId") %>%
+  left_join(genre_avg, by = "genres") %>%
+  left_join(year_avg, by = "year")%>%
+  mutate(pred=mu_hat+b_u+b_i+b_g+b_y) %>%
+  pull(pred)
+
+model_4_rmse<-RMSE(predicted_ratings, test_set$rating)
+
+#Add the RMSE to result table
+df_results<-bind_rows(
+  df_results,
+  data.frame(Method = "Movie, User, Genre, Year Effect", RMSE= as.character(round(model_4_rmse,5))
+             ,Difference =as.character(round(model_4_rmse-objective_rmse,5)))
+)
+
+df_results %>% knitr::kable()
+```
+
+#### Date Review effect
+
+Our final bias is the date review, this column is a exact date with hours, to get a better approximation it was rounded to week.
+
+```{r dateReview-effect, echo=FALSE}
+
+dateReview_avg <- train_set %>%
+  left_join(movie_avg, by = "movieId") %>%
+  left_join(user_avg, by = "userId") %>%
+  left_join(genre_avg, by = "genres")%>%
+  left_join(year_avg, by = "year")%>%
+  mutate(dateReview=round_date(as_datetime(timestamp), unit = "week")) %>%
+  group_by(dateReview)%>%
+  summarize(b_r= mean(rating - mu_hat - b_i - b_u - b_g - b_y))
+
+predicted_ratings<-test_set %>%
+  mutate(dateReview=round_date(as_datetime(timestamp), unit = "week")) %>%
+  left_join(movie_avg, by="movieId") %>%
+  left_join(user_avg, by = "userId") %>%
+  left_join(genre_avg, by = "genres") %>%
+  left_join(year_avg, by = "year")%>%
+  left_join(dateReview_avg, by = "dateReview")%>%
+  mutate(pred=mu_hat+b_u+b_i+b_g+b_y+b_r) %>%
+  pull(pred)
+
+model_5_rmse<-RMSE(predicted_ratings, test_set$rating)
+
+#Add the RMSE to result table
+df_results<-bind_rows(
+  df_results,
+  data.frame(Method = "Movie, User, Genre, Year, Date Review Effect", RMSE= as.character(round(model_5_rmse,5))
+             ,Difference =as.character(round(model_5_rmse-objective_rmse,5)))
+)
+
+df_results %>% knitr::kable()
+```
+
+This leads to the RMSE objective, but, can it be better?
+
+#### Regularization effect
+
+```{r applying-regularization, echo=FALSE}
+#Generate a sequence for Lambda
+
+incremental<-0.1
+lambdas <- seq(0,10,incremental)
+#remove(b_i, b_u)
+rmses<-sapply(lambdas, function(l){
+  
+  b_i<-train_set %>% 
+    group_by(movieId) %>%
+    summarise(b_i= sum(rating - mu_hat)/(n()+l))
+  
+  b_u <- train_set %>%
+    left_join(b_i, by="movieId") %>%
+    group_by(userId) %>%
+    summarize(b_u= sum(rating - mu_hat- b_i)/(n()+l))
+  
+  b_g <- train_set %>%
+    left_join(b_i, by = "movieId") %>%
+    left_join(b_u, by = "userId") %>%
+    group_by(genres) %>%
+    summarize(b_g= sum(rating - mu_hat - b_i - b_u)/(n()+l))
+  
+  b_y <- train_set %>%
+    left_join(b_i, by = "movieId") %>%
+    left_join(b_u, by = "userId") %>%
+    left_join(b_g, by = "genres")%>%
+    group_by(year) %>%
+    summarize(b_y= mean(rating - mu_hat - b_i - b_u - b_g)/(n()+l))
+  
+  b_r <- train_set %>%
+    left_join(b_i, by = "movieId") %>%
+    left_join(b_u, by = "userId") %>%
+    left_join(b_g, by = "genres")%>%
+    left_join(b_y, by = "year")%>%
+    mutate(dateReview=round_date(as_datetime(timestamp), unit = "week")) %>%
+    group_by(dateReview)%>%
+    summarize(b_r= mean(rating - mu_hat - b_i - b_u - b_g - b_y)/(n()+l))
+  
+  predicted_ratings<-test_set %>%
+    mutate(dateReview = round_date(as_datetime(timestamp), unit = "week")) %>%
+    left_join(b_i, by = "movieId") %>%
+    left_join(b_u, by = "userId") %>%
+    left_join(b_g, by = "genres") %>%
+    left_join(b_y, by = "year")%>%
+    left_join(b_r, by = "dateReview")%>%
+    mutate(pred=mu_hat+b_u+b_i+b_g+b_y+b_r) %>%
+    pull(pred)
+  return(RMSE(predicted_ratings,test_set$rating))
+  
+})
+```
+
+Answering the last question, yes, we can improve the last result with regularization. The following plot shows the RMSE tested for every $\lambda$ value tested. The optimal parameter is `r lambdas[which.min(rmses)]` which minimized the RMSE to `r round(min(rmses),5)`.
+
+```{r lambdas-result, echo=FALSE, fig.cap="Selecting best lambda"}
+qplot(lambdas, rmses, geom = "line")
+```
+
+```{r regularization-table, echo=FALSE}
+#Optimal tuning parameter
+lambda<-lambdas[which.min(rmses)]
+
+#Minimum RMSE reached
+regularized_rmse<-min(rmses)
+
+
+#Add the regularized results
+df_results<-bind_rows(
+  df_results,
+  data.frame(Method = "Regularized Movie, User, Genre, Year, Date Review Effect", RMSE= as.character(round(regularized_rmse,5))
+             ,Difference =as.character(round(regularized_rmse-objective_rmse,5)))
+)
+
+df_results %>% knitr::kable()
+
+
+```
+
+## Final testing
+
+```{r validation, echo=FALSE}
+
+edx<-edx %>% 
+  mutate(dateReview = round_date(as_datetime(timestamp), unit = "week"))
+
+test_set<-test_set %>%
+  mutate(dateReview = round_date(as_datetime(timestamp), unit = "week")) 
+
+b_i<-edx %>% 
+  group_by(movieId) %>%
+  summarise(b_i= sum(rating - mu_hat)/(n()+lambda))
+
+b_u <- edx %>%
+  left_join(b_i, by="movieId") %>%
+  group_by(userId) %>%
+  summarize(b_u= sum(rating - mu_hat- b_i)/(n()+lambda))
+
+b_g <- edx %>%
+  left_join(b_i, by = "movieId") %>%
+  left_join(b_u, by = "userId") %>%
+  group_by(genres) %>%
+  summarize(b_g= sum(rating - mu_hat - b_i - b_u)/(n()+lambda))
+
+b_y <- edx %>%
+  left_join(b_i, by = "movieId") %>%
+  left_join(b_u, by = "userId") %>%
+  left_join(b_g, by = "genres")%>%
+  group_by(year) %>%
+  summarize(b_y= mean(rating - mu_hat - b_i - b_u - b_g)/(n()+lambda))
+
+b_r <- edx %>%
+  left_join(b_i, by = "movieId") %>%
+  left_join(b_u, by = "userId") %>%
+  left_join(b_g, by = "genres")%>%
+  left_join(b_y, by = "year")%>%
+  group_by(dateReview)%>%
+  summarize(b_r= mean(rating - mu_hat - b_i - b_u - b_g - b_y)/(n()+lambda))
+
+predicted_ratings<-test_set %>%
+  mutate(dateReview = round_date(as_datetime(timestamp), unit = "week")) %>%
+  left_join(b_i, by = "movieId") %>%
+  left_join(b_u, by = "userId") %>%
+  left_join(b_g, by = "genres") %>%
+  left_join(b_y, by = "year")%>%
+  left_join(b_r, by = "dateReview")%>%
+  mutate(pred=mu_hat+b_u+b_i+b_g+b_y+b_r) %>%
+  pull(pred)
+
+final_rmse<-RMSE(test_set$rating, predicted_ratings)
+
+
+df_final_model <- bind_rows(
+  data.frame(Method = "Objective", RMSE = as.character(objective_rmse), Difference = "-"),
+  data.frame(Method = "Final RMSE", RMSE= as.character(round(final_rmse,5))
+             ,Difference =as.character(round(final_rmse-objective_rmse,5)))
+  )
+
+```
+
+With our algorithm defined and using using the training set and the test set to validate the RMSE, for our final step, the date review was modify to enhance the running time. The final result for the RMSE is `r round(RMSE(test_set$rating, predicted_ratings),5)` that is less than the objective o the project:
+
+```{r show-final-result,echo=TRUE}
+df_final_model %>% knitr::kable()
+```
+
+# Conclusions
+
+Analyzing the MovieLens dataset we found bias that were reduce to a RMSE lower than the objective, this was thanks to regularization to.
+
+We could improve this result using matrix factorization, singular value descomposition (SVD) and principal component analysis (PCA). It quantify residuals within this error loss based on patterns observed between groups of movies or groups of users such that the residual error in predictions can be further reduced.
+
+# Reference
+
+Irizarry, Rafael A. 2020. Introduction to Data Science: Data Analysis and Prediction Algorithms
+
+with R. CRC Press.
+
+<http://rafalab.dfci.harvard.edu/dsbook/>

@@ -1,0 +1,611 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={MovieLens Report Project},
+  pdfauthor={Ernesto José Hernández Navarro},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{MovieLens Report Project}
+\author{Ernesto José Hernández Navarro}
+\date{2024-03-25}
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+\hypertarget{introduction}{%
+\section{Introduction}\label{introduction}}
+
+Currently Machine Learning, one of the disciplines of artificial
+intelligence, has become one of the most important tools for public and
+private companies, in sectors such as health, economy, sports, traffic
+and movies, which is the case we are going to be analyzing this
+document.
+
+Netflix organized a contest for a team that could create a movie
+recommendation system in 2006. This algorithm developed by BellKor's
+Pragmtic Chaos team in 2009 served as a reference for companies like
+Amazon and offer their customers more precisely the products that they
+have the most propensity to buy.
+
+The goal of this project is to use the MovieLens dataset (which has 10
+million ratings), R and RStudio, to achieve a root mean square error
+(RMSE) less than 0.86490. Due to the large amount of information the edX
+team has made available the code to split the data.
+
+To help understand the data set, a data exploration will be carried out.
+For the algorithm tests, the information will be divided into a training
+and test set in order to validate the work done on the final model, the
+limitations and possible future potential.
+
+\hypertarget{data-exploration}{%
+\section{Data exploration}\label{data-exploration}}
+
+The data from edX data.frame has 9,000,055 rows and 6 columns, with
+ratings given by a total of 69,878 unique users, with a total of 10,677
+unique movies. The data has structure and does not has nulls:
+
+\begin{verbatim}
+##    userId   movieId    rating timestamp     title    genres 
+##         0         0         0         0         0         0
+\end{verbatim}
+
+On the top ten most rated films we see a clearly winner with Pulp
+fiction:
+
+\begin{verbatim}
+## # A tibble: 10 x 2
+##    title                                                        Count_Rating
+##    <chr>                                                               <int>
+##  1 Pulp Fiction (1994)                                                 31362
+##  2 Forrest Gump (1994)                                                 31079
+##  3 Silence of the Lambs, The (1991)                                    30382
+##  4 Jurassic Park (1993)                                                29360
+##  5 Shawshank Redemption, The (1994)                                    28015
+##  6 Braveheart (1995)                                                   26212
+##  7 Fugitive, The (1993)                                                25998
+##  8 Terminator 2: Judgment Day (1991)                                   25984
+##  9 Star Wars: Episode IV - A New Hope (a.k.a. Star Wars) (1977)        25672
+## 10 Apollo 13 (1995)                                                    24284
+\end{verbatim}
+
+The rating most used by users is 4 representing the 28.76\% of the total
+ratings, the minimum is 0.5, the maximum is 5. The integer rates were
+7,156,885 which represents the 79.5\% and the decimal ratings were
+1,843,170 representing the 20.5\%.
+
+\begin{figure}
+\centering
+\includegraphics{MovieLens-Report_files/figure-latex/- distribution-ratings-1.pdf}
+\caption{Ratings distribution}
+\end{figure}
+
+\hypertarget{movies}{%
+\subsection{Movies}\label{movies}}
+
+As we know, not all the users rates the received service, and in this
+case, the watched movie is not always rated, some are more rated than
+others, and 126 movies where rated with once. So, there is a bias that
+has to be consider on the training algorithm.
+
+\begin{figure}
+\centering
+\includegraphics{MovieLens-Report_files/figure-latex/- movie-effects-1.pdf}
+\caption{Distribution of rated movies in average}
+\end{figure}
+
+\hypertarget{users}{%
+\subsection{Users}\label{users}}
+
+Some users contribute more than others, and some of then a more
+benevolent (high ratings) with the movies. One user made 6616 and 2 did
+1059 made less than 10 ratings. The bias is clearly with the following
+plot:
+
+\begin{figure}
+\centering
+\includegraphics{MovieLens-Report_files/figure-latex/- user-effects-1-1.pdf}
+\caption{Distribution of users by Avg. Rating}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics{MovieLens-Report_files/figure-latex/- user-effects-2-1.pdf}
+\caption{\# of ratings by user}
+\end{figure}
+
+\hypertarget{genre}{%
+\subsection{Genre}\label{genre}}
+
+Movies not always has one genre, so, in the edx data set we can see that
+the field ``genre'' assigns several genres and separates it with the
+symbol ``\textbar{}'', and for our exploration the first one will be
+take. In the following table we can see that some genres have better
+ratings and a greater number of ratings:
+
+\begin{verbatim}
+## # A tibble: 20 x 3
+##    genres               count rating
+##    <chr>                <int>  <dbl>
+##  1 Drama              3910127   3.67
+##  2 Comedy             3540930   3.44
+##  3 Action             2560545   3.42
+##  4 Thriller           2325899   3.51
+##  5 Adventure          1908892   3.49
+##  6 Romance            1712100   3.55
+##  7 Sci-Fi             1341183   3.4 
+##  8 Crime              1327715   3.67
+##  9 Fantasy             925637   3.5 
+## 10 Children            737994   3.42
+## 11 Horror              691485   3.27
+## 12 Mystery             568332   3.68
+## 13 War                 511147   3.78
+## 14 Animation           467168   3.6 
+## 15 Musical             433080   3.56
+## 16 Western             189394   3.56
+## 17 Film-Noir           118541   4.01
+## 18 Documentary          93066   3.78
+## 19 IMAX                  8181   3.77
+## 20 (no genres listed)       7   3.64
+\end{verbatim}
+
+Drama and Comedy genre have clearly the most quantity of rates,
+Documentary and IMAX are the lowest rated. Also there are seven that
+don't have a genre.
+
+\hypertarget{title}{%
+\subsection{Title}\label{title}}
+
+In the data set the column ``Title'' includes the release year of the
+movie as we can see in the following table:
+
+\begin{verbatim}
+## Selecting by n
+\end{verbatim}
+
+\begin{verbatim}
+## # A tibble: 10 x 2
+##    title                                                            n
+##    <chr>                                                        <int>
+##  1 Pulp Fiction (1994)                                          31362
+##  2 Forrest Gump (1994)                                          31079
+##  3 Silence of the Lambs, The (1991)                             30382
+##  4 Jurassic Park (1993)                                         29360
+##  5 Shawshank Redemption, The (1994)                             28015
+##  6 Braveheart (1995)                                            26212
+##  7 Fugitive, The (1993)                                         25998
+##  8 Terminator 2: Judgment Day (1991)                            25984
+##  9 Star Wars: Episode IV - A New Hope (a.k.a. Star Wars) (1977) 25672
+## 10 Apollo 13 (1995)                                             24284
+\end{verbatim}
+
+It looks like there is a bias on the year, on the following chart the
+curve increase between 1940 and 1950, after that and starting from 1970
+the curve decrease the average rating. The number of rates starts it
+peak on 1990 and maximum number is on 1995.
+
+\begin{verbatim}
+## `geom_smooth()` using method = 'loess' and formula 'y ~ x'
+\end{verbatim}
+
+\includegraphics{MovieLens-Report_files/figure-latex/- year effect-1.pdf}
+
+\begin{center}\includegraphics[width=0.75\linewidth]{MovieLens-Report_files/figure-latex/- # of rates by release year-1} \end{center}
+
+\hypertarget{methods}{%
+\subsection{Methods}\label{methods}}
+
+\begin{verbatim}
+## Warning in set.seed(2024, sample.kind = "Rounding"): non-uniform 'Rounding'
+## sampler used
+\end{verbatim}
+
+\begin{verbatim}
+## Joining with `by = join_by(userId, movieId, rating, timestamp, title, year,
+## genres)`
+\end{verbatim}
+
+As mentioned at the introduction our goal is to reach a RMSE less than
+0.86490, to do it the edx dataset needs to be split in two parts, the
+training set and the test set. This together with cross-validation
+methods allows to prevent over-training.
+
+Doing the same steps learned from professor Irizarry courses the data
+will be partitioned, 80\% for training and 20\% for testing using the
+libraries ``caret'', ``tydiverse'' and ``dplyr''.
+
+\hypertarget{error-loss}{%
+\subsubsection{Error loss}\label{error-loss}}
+
+The RMSE is like the standard deviation of the residual predictors. The
+RMSE represent the error loss between the predicted ratings from
+applying the algorithm and actual ratings in the test set. The formula
+shown below, \(y_{u,i}\) is defined as the actual rating provided by a
+user \(u\) for a movie \(i\), \(\hat{y}_{u,i}\) is the predicted rating
+for the same, and N is the total number of user/movie combinations.
+
+\[RMSE = \sqrt{\frac{1}{N}\sum_{u,i}\left(\hat{y}_{u,i}-y_{u,i}\right)^2}\]
+
+\hypertarget{developing-the-algorithm}{%
+\subsubsection{Developing the
+algorithm}\label{developing-the-algorithm}}
+
+The goal set for this project is to achieve a RMSE equal or less than
+0.86490, then it will be about reaching the goal step by step. We need
+to the fit the model with this formula:
+
+\[Y_{u,i}=\mu+\epsilon_{u,i}\]
+
+The common method is to use the rating mean of every user on movies.
+
+\[Y{u,i} = \mu\]
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mu\_hat }\OtherTok{\textless{}{-}} \FunctionTok{mean}\NormalTok{(train\_set}\SpecialCharTok{$}\NormalTok{rating)}
+\FunctionTok{RMSE}\NormalTok{(test\_set}\SpecialCharTok{$}\NormalTok{rating, mu\_hat)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 1.059951
+\end{verbatim}
+
+And any number will be higher than \(\hat{\mu}\) mean as we can see
+below
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{predictions }\OtherTok{\textless{}{-}} \FunctionTok{rep}\NormalTok{(}\FloatTok{2.5}\NormalTok{, }\FunctionTok{nrow}\NormalTok{(test\_set))}
+\FunctionTok{RMSE}\NormalTok{(test\_set}\SpecialCharTok{$}\NormalTok{rating, predictions)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 1.465849
+\end{verbatim}
+
+\hypertarget{movie-effect}{%
+\paragraph{Movie effect}\label{movie-effect}}
+
+Due to the large dataset for this project a linear regression would take
+several time, a better option to work with is the least square estimate
+of the movie effect \(\hat{b}_i\), it can be take from the average of
+\(Y_{u,i}-\hat{\mu}\) in every movie \(i\). The following formula was
+used to get the movie effect:
+
+\[Y_{u,i}=\mu+b_i+\epsilon_{u,i}\]
+
+And we can see the effect of the movies with the following plot:
+
+\begin{figure}
+\centering
+\includegraphics{MovieLens-Report_files/figure-latex/movie-effect-1.pdf}
+\caption{Distribution movie effect}
+\end{figure}
+
+The RMSE is lowest than the mean and it was a good improve, as it was
+shown in data exploration some movies get more rated than others, we
+still need improve more the result to get our objective.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Predict ratings adjusting for movie effects}
+\NormalTok{predicted\_ratings}\OtherTok{\textless{}{-}}\NormalTok{mu\_hat}\SpecialCharTok{+}\NormalTok{test\_set}\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{left\_join}\NormalTok{(movie\_avg, }\AttributeTok{by =} \StringTok{"movieId"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{pull}\NormalTok{(b\_i)}
+
+\CommentTok{\# Calculate RMSE based on movie effects model}
+\NormalTok{model\_1\_rmse}\OtherTok{\textless{}{-}}\FunctionTok{RMSE}\NormalTok{(test\_set}\SpecialCharTok{$}\NormalTok{rating, predicted\_ratings)}
+
+\CommentTok{\#Save result and show difference between objective}
+\NormalTok{df\_results}\OtherTok{\textless{}{-}}\FunctionTok{bind\_rows}\NormalTok{(df\_results,}
+                      \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{Method =} \StringTok{"Movie  Effect"}\NormalTok{, }\AttributeTok{RMSE =} \FunctionTok{as.character}\NormalTok{(}\FunctionTok{round}\NormalTok{(model\_1\_rmse,}\DecValTok{5}\NormalTok{)), }
+                                 \AttributeTok{Difference =} \FunctionTok{as.character}\NormalTok{(}\FunctionTok{round}\NormalTok{(model\_1\_rmse,}\DecValTok{5}\NormalTok{)}\SpecialCharTok{{-}}\NormalTok{objective\_rmse)))}
+
+\NormalTok{df\_results }\SpecialCharTok{\%\textgreater{}\%}\NormalTok{ knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+Method & RMSE & Difference \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Objective & 0.8649 & - \\
+Movie Effect & 0.94367 & 0.07877 \\
+\end{longtable}
+
+\hypertarget{user-effect}{%
+\paragraph{User effect}\label{user-effect}}
+
+Some users tend to rate more than others (quantity) and other are more
+critical than others, so adding the user effect is slightly better than
+only use the movie effect
+
+\begin{figure}
+\centering
+\includegraphics{MovieLens-Report_files/figure-latex/user-effect-1.pdf}
+\caption{Distribution user effect}
+\end{figure}
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+Method & RMSE & Difference \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Objective & 0.8649 & - \\
+Movie Effect & 0.94367 & 0.07877 \\
+Movie + User Effect & 0.86561 & 0.00071 \\
+\end{longtable}
+
+\hypertarget{gender-effect}{%
+\paragraph{Gender effect}\label{gender-effect}}
+
+The movies acclaimed by critics then to be more rated by users thats why
+we saw an improve using movies and users, but this happens with the
+genre too. The table below shows the results.
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+Method & RMSE & Difference \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Objective & 0.8649 & - \\
+Movie Effect & 0.94367 & 0.07877 \\
+Movie + User Effect & 0.86561 & 0.00071 \\
+Movie, User, Genre Effect & 0.86526 & 0.00036 \\
+\end{longtable}
+
+\hypertarget{year-effect}{%
+\paragraph{Year effect}\label{year-effect}}
+
+On the data exploration it was shown than it was a clearly year effect
+reaching it highest peak on the 90's. It adds a modest improve of
+0.00036.
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+Method & RMSE & Difference \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Objective & 0.8649 & - \\
+Movie Effect & 0.94367 & 0.07877 \\
+Movie + User Effect & 0.86561 & 0.00071 \\
+Movie, User, Genre Effect & 0.86526 & 0.00036 \\
+Movie, User, Genre, Year Effect & 0.86509 & 0.00019 \\
+\end{longtable}
+
+\hypertarget{date-review-effect}{%
+\paragraph{Date Review effect}\label{date-review-effect}}
+
+Our final bias is the date review, this column is a exact date with
+hours, to get a better approximation it was rounded to week.
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+Method & RMSE & Difference \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Objective & 0.8649 & - \\
+Movie Effect & 0.94367 & 0.07877 \\
+Movie + User Effect & 0.86561 & 0.00071 \\
+Movie, User, Genre Effect & 0.86526 & 0.00036 \\
+Movie, User, Genre, Year Effect & 0.86509 & 0.00019 \\
+Movie, User, Genre, Year, Date Review Effect & 0.8649 & 0 \\
+\end{longtable}
+
+This leads to the RMSE objective, but, can it be better?
+
+\hypertarget{regularization-effect}{%
+\paragraph{Regularization effect}\label{regularization-effect}}
+
+Answering the last question, yes, we can improve the last result with
+regularization. The following plot shows the RMSE tested for every
+\(\lambda\) value tested. The optimal parameter is 4.7 which minimized
+the RMSE to 0.86462.
+
+\begin{figure}
+\centering
+\includegraphics{MovieLens-Report_files/figure-latex/lambdas-result-1.pdf}
+\caption{Selecting best lambda}
+\end{figure}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.7500}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.1053}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.1447}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Method
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+RMSE
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Difference
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Objective & 0.8649 & - \\
+Movie Effect & 0.94367 & 0.07877 \\
+Movie + User Effect & 0.86561 & 0.00071 \\
+Movie, User, Genre Effect & 0.86526 & 0.00036 \\
+Movie, User, Genre, Year Effect & 0.86509 & 0.00019 \\
+Movie, User, Genre, Year, Date Review Effect & 0.8649 & 0 \\
+Regularized Movie, User, Genre, Year, Date Review Effect & 0.86462 &
+-0.00028 \\
+\end{longtable}
+
+\hypertarget{final-testing}{%
+\subsection{Final testing}\label{final-testing}}
+
+With our algorithm defined and using using the training set and the test
+set to validate the RMSE, for our final step, the date review was modify
+to enhance the running time. The final result for the RMSE is 0.85621
+that is less than the objective o the project:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{df\_final\_model }\SpecialCharTok{\%\textgreater{}\%}\NormalTok{ knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+Method & RMSE & Difference \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Objective & 0.8649 & - \\
+Final RMSE & 0.85621 & -0.00869 \\
+\end{longtable}
+
+\hypertarget{conclusions}{%
+\section{Conclusions}\label{conclusions}}
+
+Analyzing the MovieLens dataset we found bias that were reduce to a RMSE
+lower than the objective, this was thanks to regularization to.
+
+We could improve this result using matrix factorization, singular value
+descomposition (SVD) and principal component analysis (PCA). It quantify
+residuals within this error loss based on patterns observed between
+groups of movies or groups of users such that the residual error in
+predictions can be further reduced.
+
+\hypertarget{reference}{%
+\section{Reference}\label{reference}}
+
+Irizarry, Rafael A. 2020. Introduction to Data Science: Data Analysis
+and Prediction Algorithms
+
+with R. CRC Press.
+
+\url{http://rafalab.dfci.harvard.edu/dsbook/}
+
+\end{document}
